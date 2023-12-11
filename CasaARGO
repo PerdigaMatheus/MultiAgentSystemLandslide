@@ -1,1 +1,28 @@
+serialPort(ttyUSB0).
+ 
+!start.
 
++!start : serialPort(Port) <-
+	.port(Port);
+	.percepts(open);
+	.limit(500);
+	.print("iniciando os trabalhos...").
+ 
++!ativarSireneCritico <-
+	.act(sireneCritico).
+ 
++!ativarSirenePerigo <-
+	.act(sirenePerigo).
++timeoff(T) <-
+	.send(casaCOM,tell,timeoff(T));
+	!apagar.
+
++alerta(A) <-
+	.send(casaCOM,tell,alerta(A));
+	-alerta(A).
+
++umidade(U) <-
+	.send(casaCOM,tell,umidade(U));
+	!apagar.
+ 
++!apagar <- .abolish(umidade(_)); .abolish(timeoff(_)).
