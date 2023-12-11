@@ -1,0 +1,36 @@
+bairroUUID("6d424a30-c511-4920-a85f-8f9e79bce39a").
+defesacivilUUID("6e5aef58-fdac-467c-9536-d6abb4e7260c").
+casaUUID("2b5153e0-1576-4be0-b23e-1bbb0afd8493").
+gateway("192.168.67.26",5500).
+!connect.
+ 
+ 
++!connect: gateway(Server,Port) & casaUUID(MyID)  <- 
+	.connectCN(Server,Port,MyID);
+	.print("Conectado").
+ 
++!sireneCritico[source(Who)]<-
+	.send(casaARD,achieve,ativarSireneCritico);
+	-sireneCritico.
+ 
++!sirenePerigo[source(Who)]<-
+	.send(casaARD,achieve,ativarSirenePerigo);
+	-sirenePerigo.
++timeoff(T) <- !mandarTime.
+
+ 
++umidade(U) <- !mandarUmidade.
+ 
++!mandarTime: timeoff(T)<-
+	?bairroUUID(Bairro);
+	.print("timeoff(",T,")");
+	.abolish(timeoff(_));
+	.sendOut(Bairro,tell,timeoff(T));
+	.print("Vibracao enviada").
+ 
+ 
++!mandarUmidade: bairroUUID(Bairro) & umidade(U)<-
+	.abolish(umidade(_));
+	.print("umidade(",U,")");
+	.sendOut(Bairro,tell,umidade(U));
+	.print("Umidade enviada").
