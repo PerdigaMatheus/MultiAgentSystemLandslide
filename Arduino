@@ -1,0 +1,98 @@
+#include <Javino.h>
+Javino javino;
+//Entradas
+int valorLido; //VARIÁVEL QUE ARMAZENA O PERCENTUAL DE UMIDADE DO SOLO
+const int pinoLed = 2; // PINO DIGITAL UTILIZADO PELO LED
+const int pinoSensor = 3; // PINO DIGITAL UTILIZADO PELO SENSOR
+int pinoSensorumidade = A0;
+const int pinoBuzzer = 11;
+int tempoantes;
+boolean mexeu = false;
+ 
+//variáveis
+unsigned long inicioTempo = 0;
+int analogSoloSeco = 900; //VALOR MEDIDO COM O SOLO SECO (VOCÊ PODE FAZER TESTES E AJUSTAR ESTE VALOR)
+int analogSoloMolhado =300; //VALOR MEDIDO COM O SOLO MOLHADO (VOCÊ PODE FAZER TESTES E AJUSTAR ESTE VALOR)
+int percSoloSeco = 0; //MENOR PERCENTUAL DO SOLO SECO (0% - NÃO ALTERAR)
+int percSoloMolhado = 100; //MAIOR PERCENTUAL DO SOLO MOLHADO (100% - NÃO ALTERAR)
+int alerta = 0;
+ 
+ 
+void setup() {
+  
+///////////////////////////////
+ 
+  
+  pinMode(pinoSensor, INPUT); // DEFINE O PINO COMO ENTRADA
+  pinMode(pinoLed, OUTPUT); // DEFINE O PINO COMO SAÍDA
+  digitalWrite(pinoLed, LOW); // LED INICIA DESLIGADO
+  pinMode(pinoBuzzer, OUTPUT);
+  javino.act["sirenePerigo"]  = perigo;
+  javino.act["sireneCritico"] = critico;
+  javino.perceive(getExogenousPerceptions);
+  javino.start(9600);
+ 
+}
+ 
+void loop() {
+  //Sensor de umidade
+valorLido = constrain(analogRead(pinoSensorumidade),analogSoloMolhado,analogSoloSeco); //MANTÉM valorLido DENTRO DO INTERVALO (ENTRE analogSoloMolhado E analogSoloSeco)
+valorLido = map(valorLido,analogSoloMolhado,analogSoloSeco,percSoloMolhado,percSoloSeco); //EXECUTA A FUNÇÃO "map" DE ACORDO COM OS PARÂMETROS PASSADOS
+ 
+ 
+//Sensor de vibração
+  static unsigned long tempoAnterior = 0; // Variável para armazenar o tempo da ativação anterior
+  static bool sensorAtivadoAnteriormente = false; // Flag para verificar se o sensor estava ativado na leitura anterior
+  if (digitalRead(pinoSensor) == HIGH) {
+    // Sensor foi ativado agora
+    unsigned long tempoAtual = millis();
+    unsigned long diferencaTempo = tempoAtual - tempoAnterior;
+        // Imprime a diferença de tempo no console serial
+    
+    // Atualiza o tempo da ativação anterior
+    tempoAnterior = tempoAtual;
+    mexeu = true;
+    //sensorAtivadoAnteriormente = true;
+    }
+ 
+    // Adicione aqui a lógica para acender o LED se necessário
+    if(digitalRead(pinoSensor)==HIGH){
+      digitalWrite(pinoLed, HIGH);
+          }
+ 
+    else {
+      digitalWrite(pinoLed, LOW);
+    }
+    javino.run();
+}
+
+void serialEvent(){
+  javino.readSerial();
+}
+
+void getExogenousPerceptions(){
+  javino.addPercept("umidade("+String(valorLido)+")");
+  javino.addPercept("timeoff("+String(mexeu)+")");
+  mexeu=false;
+}
+ 
+
+ 
+void perigo(){
+  // Ativa o buzzer (fazendo-o apitar)
+  tone(pinoBuzzer, 1000);  // 1000 Hz, você pode ajustar a frequência conforme necessário
+  // Aguarda por um curto período de tempo
+  delay(500);  // Tempo em milissegundos, você pode ajustar conforme necessário
+  // Desativa o buzzer (parando o som)
+  noTone(pinoBuzzer);
+  // Aguarda por um curto período de tempo antes de começar novamente
+  delay(500);
+}
+ 
+void critico(){
+    // Sirene contínua
+  for (int i = 1000; i <= 2000; i += 50) {
+    tone(pinoBuzzer, i);
+    delay(10);
+  }
+}
