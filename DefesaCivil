@@ -1,0 +1,29 @@
+/* Initial beliefs and rules */
+bairroUUID("6d424a30-c511-4920-a85f-8f9e79bce39a").
+defesacivilUUID("6e5aef58-fdac-467c-9536-d6abb4e7260c").
+casaUUID("2b5153e0-1576-4be0-b23e-1bbb0afd8493").
+gateway("192.168.67.26", 5500).
+
+/* Initial goals */
+!connect.
+!verify.
+/* Plans */
++!connect: gateway(Server,Port) & defesacivilUUID(MyID)  <- 
+	.connectCN(Server,Port,MyID);
+	.print("Conectado").
++!verify: timeoff(T) & T=1 <- !alertaCritico.
++!verify: umidade(U) & U>=90 <- !alertaCritico.
++!verify: umidade(U) & U>=60 & U<90 <- !alertaPerigo.
+-!verify <- .wait(1000); !verify.
+
++!alertaCritico: bairroUUID(Bairro) <-
+	.print("Alerta Critico!");
+	.print("Acionando corpo de bombeiros!");
+	.sendOut(Bairro,tell,critico);
+	!matar.
++!alertaPerigo: bairroUUID(Bairro) <-
+	.print("Alerta de perigo!");
+	.sendOut(Bairro,tell,perigo);
+	!matar.
+ 
++!matar <- .abolish(umidade(_)); .abolish(timeoff(_)); !verify.
