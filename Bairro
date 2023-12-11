@@ -1,1 +1,32 @@
+bairroUUID("6d424a30-c511-4920-a85f-8f9e79bce39a").
+defesacivilUUID("6e5aef58-fdac-467c-9536-d6abb4e7260c").
+casaUUID("2b5153e0-1576-4be0-b23e-1bbb0afd8493").
+gateway("192.168.67.26",5500). 
+!connect.
+ 
+ 
++!connect: gateway(Server,Port) & bairroUUID(MyID)  <- 
+	.connectCN(Server,Port,MyID);
+	.print("Conectado").
+ 
++umidade(Umi): defesacivilUUID(Defesa) & umidade(Umi) <-
+	.print("Encaminhando dados de Umidade para a Defesa Civil: Umidade = ",Umi);
+	.sendOut(Defesa,tell,umidade(Umi));
+	!matar.
 
++timeoff(T): defesacivilUUID(Defesa) & timeoff(T) <-
+	.print("Enviando timeoff = ",T);
+	.sendOut(Defesa,tell,timeoff(T));
+	!matar.
+ 
++critico: casaUUID(Casa) <-
+	.print("Enviando alerta critico");
+	.sendOut(Casa,achieve,sireneCritico);
+	!matar.
+ 
++perigo: casaUUID(Casa) <-
+	.print("enviando alerta de perigo");
+	.sendOut(Casa,achieve,sirenePerigo);
+	!matar.
+ 
++!matar <- .abolish(umidade(_)); .abolish(timeoff(_)); .abolish(critico); .abolish(perigo).
